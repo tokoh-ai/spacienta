@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#171b23" />
+    <meta name="description" content="Collaborative spatial accessibility planning with WebMCP: humans and AI build, understand, simulate and improve the same real living space together." />
+    <title>Spacienta — Collaborative Accessibility Planning</title>
+  </head>
+  <body>
+    <div id="welcomeScreen" class="welcome-screen">
+      <div class="welcome-card">
+        <div class="welcome-brand">
+          <div class="brand-mark large" aria-hidden="true">S</div>
+          <div>
+            <p class="eyebrow">OPENAI WEBMCP CHALLENGE</p>
+            <h1>Plan a room with your AI — before moving it in real life.</h1>
+          </div>
+        </div>
+        <p class="welcome-lead">Human and AI build, understand and improve real living spaces together. One shared 3D room. One live state.</p>
+
+        <div class="welcome-options">
+          <article class="welcome-option guided-option">
+            <span class="option-index">01</span>
+            <div>
+              <p class="panel-kicker">FASTEST START</p>
+              <h2>Explore Guided Scenario</h2>
+              <p>A prepared accessibility problem with analysis, safe simulation, comparison, apply, undo/redo and the complete evaluation-ready workflow.</p>
+            </div>
+            <button id="tryGuidedButton" class="button button-primary button-large">Open guided scenario</button>
+          </article>
+
+          <article class="welcome-option creator-option">
+            <span class="option-index">02</span>
+            <div>
+              <p class="panel-kicker">MODEL A REAL SPACE</p>
+              <h2>Create Your Room</h2>
+              <p>Start with real dimensions, then add wall features and furniture yourself — or describe the room to your AI agent.</p>
+            </div>
+            <form id="welcomeCreatorForm" class="welcome-form">
+              <label>Width <span>m</span><input id="welcomeWidth" type="number" min="3" max="12" step="0.1" value="4.5" required /></label>
+              <label>Length <span>m</span><input id="welcomeDepth" type="number" min="3" max="12" step="0.1" value="4" required /></label>
+              <label>Height <span>m</span><input id="welcomeHeight" type="number" min="2.2" max="4.2" step="0.1" value="2.7" required /></label>
+              <button class="button button-secondary button-large" type="submit">Create room</button>
+            </form>
+          </article>
+        </div>
+
+        <div class="welcome-agent-callout">
+          <div class="agent-orb">AI</div>
+          <div><strong>Build it yourself — or describe your room to your AI agent.</strong><span>WebMCP gives the agent structured control of the exact same room you see.</span></div>
+          <button id="resumeRoomButton" class="button button-ghost is-hidden">Resume last autosave</button>
+        </div>
+
+        <section id="savedProjectsSection" class="saved-projects-section">
+          <div class="saved-projects-heading">
+            <div><p class="panel-kicker">LOCAL PROJECT LIBRARY</p><h2>Your saved rooms</h2></div>
+            <span>stored in this browser</span>
+          </div>
+          <div id="savedProjectList" class="saved-project-list"><div class="saved-project-empty">No named rooms saved yet. Custom rooms are still continuously autosaved.</div></div>
+        </section>
+        <button id="closeWelcomeButton" class="welcome-close is-hidden" aria-label="Close project chooser">×</button>
+      </div>
+    </div>
+
+    <div id="app">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-mark" aria-hidden="true">S</div>
+          <div>
+            <p class="eyebrow">COLLABORATIVE SPATIAL ACCESSIBILITY PLANNING</p>
+            <h1>Spacienta</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <div id="modeBadge" class="badge badge-mode">Guided Scenario</div>
+          <div id="webmcpBadge" class="badge badge-neutral">Checking WebMCP…</div>
+          <div class="history-actions" aria-label="History controls">
+            <button id="undoButton" class="icon-button" disabled title="Nothing to undo" aria-label="Undo">↶</button>
+            <button id="redoButton" class="icon-button" disabled title="Nothing to redo" aria-label="Redo">↷</button>
+          </div>
+          <button id="projectButton" class="button button-ghost">Projects</button>
+          <button id="cameraButton" class="button button-ghost">Reset camera</button>
+          <button id="resetButton" class="button button-ghost">Reset scenario</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="scene-shell">
+          <div id="scene" aria-label="Interactive shared 3D room"></div>
+          <div class="scene-vignette" aria-hidden="true"></div>
+          <div class="scene-label"><span class="live-dot"></span><span id="sceneStateLabel">SHARED LIVE STATE · GUIDED</span></div>
+          <div id="roomDimensionBadge" class="room-dimension-badge">10 × 8 m</div>
+          <div id="simulationBanner" class="simulation-banner" aria-live="polite">
+            <div class="simulation-icon">◇</div>
+            <div><span>AGENT SIMULATION · LIVE ROOM UNCHANGED</span><strong id="simulationLabel">Candidate</strong></div>
+            <div id="simulationScore" class="simulation-score">—</div>
+            <button id="clearSimulationButton" aria-label="Hide simulation">×</button>
+          </div>
+          <div class="scene-help"><span>Select furniture</span><span>Drag furniture to move</span><span>Drag blue ring to rotate</span><span>Drag empty space to orbit</span><span>Scroll to zoom</span><span>Double-click to reset view</span></div>
+        </section>
+
+        <aside class="sidebar">
+          <section id="guidedPromptPanel" class="panel prompt-panel">
+            <div class="panel-heading compact"><div><p class="panel-kicker">AGENT WORKFLOW</p><h2>Try the agent workflow</h2></div><span class="step-chip">1 prompt</span></div>
+            <p id="promptText" class="guided-prompt">Inspect this room and improve its accessibility. Simulate at least two collision-free alternatives, compare them, apply the best one, then verify the final layout. Keep fixed wall features in place.</p>
+            <button id="copyPromptButton" class="button button-primary">Copy prompt</button>
+          </section>
+
+          <section id="creatorPanel" class="panel creator-panel is-hidden">
+            <div class="panel-heading compact"><div><p class="panel-kicker">YOUR REAL ROOM</p><h2>Room Creator</h2></div><span class="state-chip">shared</span></div>
+            <p class="creator-intro">Build it yourself — or describe your room to your AI agent. Both edit the same live state.</p>
+            <div class="creator-section project-save-section">
+              <div class="creator-section-title"><strong>Project</strong><span>local save</span></div>
+              <div class="project-save-row">
+                <input id="projectNameInput" type="text" maxlength="60" value="My Room" aria-label="Project name" />
+                <button id="saveProjectButton" class="button button-secondary">Save room</button>
+              </div>
+              <p class="creator-help">Your current custom room is continuously autosaved. “Save room” adds or updates a named room in the project list.</p>
+            </div>
+            <div class="creator-section">
+              <div class="creator-section-title"><strong>Dimensions</strong><span>meters</span></div>
+              <div class="dimension-grid">
+                <label>Width<input id="roomWidthInput" type="number" min="3" max="12" step="0.1" /></label>
+                <label>Length<input id="roomDepthInput" type="number" min="3" max="12" step="0.1" /></label>
+                <label>Height<input id="roomHeightInput" type="number" min="2.2" max="4.2" step="0.1" /></label>
+              </div>
+              <div class="creator-actions"><button id="applyDimensionsButton" class="button button-secondary">Apply dimensions</button><button id="setBaselineButton" class="button button-ghost">Set as baseline</button></div>
+            </div>
+
+            <div class="creator-section">
+              <div class="creator-section-title"><strong>Furniture library</strong><span>click to add</span></div>
+              <div id="furnitureLibrary" class="library-grid"></div>
+            </div>
+
+            <div class="creator-section">
+              <div class="creator-section-title"><strong>Room features</strong><span>fixed to walls</span></div>
+              <div class="feature-add-row">
+                <button class="mini-add" data-add-feature="door">+ Door</button>
+                <button class="mini-add" data-add-feature="window">+ Window</button>
+                <button class="mini-add" data-add-feature="radiator">+ Radiator</button>
+              </div>
+              <div id="featureList" class="feature-list"></div>
+            </div>
+
+            <div class="agent-build-card">
+              <span>AI BUILD EXAMPLE</span>
+              <p id="agentBuildPrompt">Create a 4.5 by 4 meter bedroom with a door, a window, a radiator, a double bed, a desk and a wardrobe. Place everything collision-free, then inspect the finished room.</p>
+              <button id="copyBuildPromptButton" class="button button-ghost">Copy agent prompt</button>
+            </div>
+            <button id="clearRoomButton" class="destructive-link">Clear custom room</button>
+          </section>
+
+          <section id="scenarioPanel" class="panel scenario-panel">
+            <div class="panel-heading compact"><div><p class="panel-kicker">PLANNING SCENARIO</p><h2>Prepared planning state</h2></div><span class="state-chip">shared</span></div>
+            <select id="scenarioSelect" class="scenario-select" aria-label="Choose planning scenario"></select>
+            <p id="scenarioDescription" class="muted"></p>
+          </section>
+
+          <section class="panel hero-panel">
+            <p class="panel-kicker">SELECTED FURNITURE</p>
+            <h2 id="selectedName">No furniture selected</h2>
+            <p id="selectedMeta" class="muted">Click a furniture object in the room.</p>
+            <div id="controls" class="object-controls is-disabled">
+              <div class="move-grid" aria-label="Move selected furniture">
+                <button data-move="forward" title="Move toward back wall">↑</button>
+                <button data-move="left" title="Move left">←</button>
+                <button data-move="right" title="Move right">→</button>
+                <button data-move="back" title="Move toward front wall">↓</button>
+              </div>
+              <div class="selected-actions">
+                <div class="rotate-actions" aria-label="Rotate selected furniture">
+                  <button data-rotate="-90" class="button button-secondary rotate-arrow" title="Rotate left 90°" aria-label="Rotate left 90 degrees">↶</button>
+                  <button data-rotate="90" class="button button-secondary rotate-arrow" title="Rotate right 90°" aria-label="Rotate right 90 degrees">↷</button>
+                </div>
+                <button id="deleteButton" class="button button-danger">Delete</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel score-panel">
+            <div class="panel-heading"><div><p class="panel-kicker">ACCESSIBILITY</p><h2>Explainable live analysis</h2><span id="gradeValue" class="grade-label">—</span></div><div id="scoreRing" class="score-ring" aria-label="Accessibility score"><span id="scoreValue">—</span></div></div>
+            <div class="before-after" aria-label="Baseline and current score comparison"><div><span>Planning baseline</span><strong id="beforeScore">—</strong></div><div class="compare-arrow">→</div><div><span>Current</span><strong id="currentScore">—</strong></div><div id="scoreDelta" class="compare-delta">±0</div></div>
+            <div id="scoreBreakdown" class="score-breakdown"></div>
+            <div id="analysisSummary" class="analysis-summary"></div>
+            <details class="score-methodology">
+              <summary>How this score works</summary>
+              <div class="methodology-copy">
+                <p><strong>100-point comparative score:</strong> Accessible Routes 30 · Target Approach 20 · Entrance Access 20 · Reachable Maneuvering 20 · Fixed Feature Access 10.</p>
+                <div class="reference-grid">
+                  <span><b>0.92 m</b> route reference</span>
+                  <span><b>0.82 m</b> door opening reference</span>
+                  <span><b>1.52 m</b> circular turning reference</span>
+                  <span><b>1.20 m</b> route comfort target</span>
+                </div>
+                <p>The first three dimensions are rounded metric accessibility reference values. The 1.20 m path target is a Spacienta comfort heuristic used to compare layouts. Required routes originate at one primary entrance and terminate in modeled furniture access zones. Optional fixed-feature categories are N/A when absent; rooms without accessibility targets are not rated. Physical overlaps are treated as invalid conditions rather than bonus points. Door swing/handedness and jurisdiction-specific code checks are not modeled.</p>
+              </div>
+            </details>
+            <button id="analyzeButton" class="button button-primary">Analyze &amp; show paths</button>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading compact"><div><p class="panel-kicker">HUMAN + AGENT</p><h2>Shared activity timeline</h2></div><span id="activityCount" class="counter">0</span></div>
+            <div id="activityLog" class="activity-log"><div class="activity-empty">Human, agent and simulation actions share this timeline.</div></div>
+          </section>
+
+          <section class="panel tool-panel">
+            <div class="panel-heading compact"><div><p class="panel-kicker">WEBMCP SURFACE</p><h2><span id="toolCount">10</span> grouped tools</h2></div><div class="tool-totals"><span><b id="readCount">5</b> read</span><span><b id="writeCount">5</b> write</span></div></div>
+            <p class="tool-principle">Few tools. Strong capabilities. Clear responsibilities.</p>
+            <div id="toolList" class="tool-list"></div>
+          </section>
+
+          <footer class="sidebar-footer">Accessibility planning and exploration tool · not a certification, building-code assessment or medical service.</footer>
+        </aside>
+      </main>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
