@@ -322,7 +322,7 @@ function updateWorkspaceUI() {
   } else {
     scenarioSelect.value = scenario.id;
     scenarioDescription.textContent = scenario.description;
-    promptText.textContent = 'Inspect this room and improve its accessibility. Simulate at least two collision-free alternatives, compare them, apply the best one, then verify the final layout. Keep fixed wall features in place.';
+    promptText.textContent = 'Inspect the current room and improve both its accessibility and its realism. Do not reset or switch scenarios, remove furniture, or move fixed wall features. Simulate at least three collision-free alternatives, arranging and rotating furniture naturally, with large furniture near appropriate walls when practical. Compare the alternatives, choose the best balance of accessibility and realistic room design, apply it, then verify the final layout.';
     guidedPromptPanel.querySelector('.panel-kicker').textContent = 'AGENT WORKFLOW';
     guidedPromptPanel.querySelector('h2').textContent = 'Try the agent workflow';
   }

@@ -142,7 +142,7 @@ The generated `dist/` directory is a static site and can be deployed to Vercel w
 
 Open **Explore Guided Scenario** and ask the WebMCP-capable agent:
 
-> Inspect this room and improve its accessibility. Simulate at least two collision-free alternatives, compare them, apply the best one, then verify the final layout. Keep fixed wall features in place.
+> Inspect the current room and improve both its accessibility and its realism. Do not reset or switch scenarios, remove furniture, or move fixed wall features. Simulate at least three collision-free alternatives, arranging and rotating furniture naturally, with large furniture near appropriate walls when practical. Compare the alternatives, choose the best balance of accessibility and realistic room design, apply it, then verify the final layout.
 
 For the product path, use **Create Your Room** or ask the agent to create one, for example:
 
